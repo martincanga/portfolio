@@ -82,16 +82,18 @@ const { title, description, image = "/nano.png" } = Astro.props;
     const backToPrev = document.getElementById("back-to-prev");
     backToPrev?.addEventListener("click", () => window.history.back());
 
-    const lightThemeButton = document.getElementById("light-theme-button");
-    lightThemeButton?.addEventListener("click", () => {
-      localStorage.setItem("theme", "light");
-      toggleTheme(false);
-    });
+    const ThemeButton = document.getElementById("theme-button");
+    const lightThemeButton = document.getElementById("light-theme-icon");
+    const darkThemeButton = document.getElementById("dark-theme-icon");
 
-    const darkThemeButton = document.getElementById("dark-theme-button");
-    darkThemeButton?.addEventListener("click", () => {
-      localStorage.setItem("theme", "dark");
-      toggleTheme(true);
+    ThemeButton?.addEventListener("click", () => {
+      const isDark = document.documentElement.classList.contains("dark");
+      const newTheme = isDark ? "light" : "dark";
+      localStorage.setItem("theme", newTheme);
+      toggleTheme(newTheme === "dark");
+      const isOpen = darkThemeButton.style.display === "none";
+      darkThemeButton.style.display = isDark ? "none" : "block";
+      lightThemeButton.style.display = isDark ? "block" : "none";
     });
 
     const systemThemeButton = document.getElementById("system-theme-button");
@@ -100,13 +102,13 @@ const { title, description, image = "/nano.png" } = Astro.props;
       toggleTheme(window.matchMedia("(prefers-color-scheme: dark)").matches);
     });
 
+    // Automatically set theme to system preference on change
     window.matchMedia("(prefers-color-scheme: dark)")
       .addEventListener("change", event => {
-        if (localStorage.theme === "system") {
-          toggleTheme(event.matches);
-        }
+      if (localStorage.getItem("theme") === "system" || !localStorage.getItem("theme")) {
+        toggleTheme(event.matches);
       }
-    );
+      });
 
     document.addEventListener("scroll", onScroll);
   }
