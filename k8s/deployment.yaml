@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: astro-app
+  labels:
+    app: astro-website
+spec:
+  replicas: 3 # 3 copies for the 3 nodes
+  selector:
+    matchLabels:
+      app: astro-website
+  template:
+    metadata:
+      labels:
+        app: astro-website
+    spec:
+      containers:
+      - name: astro-website
+        # localhost:32000 is the internal MicroK8s registry we enabled earlier
+        image: localhost:32000/astro-site:latest 
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: astro-service
+spec:
+  selector:
+    app: astro-website
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: astro-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: public
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: astro-service
+            port:
+              number: 80
