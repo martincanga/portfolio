@@ -1,0 +1,34 @@
+name: Deploy to MicroK8s Pi Cluster
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    # execute on the main local node k8s-master
+    runs-on: [self-hosted, microk8s-cluster]
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Build Docker Image
+      run: |
+        # build the image tagging it for the local MicroK8s registry
+        docker build -t localhost:32000/astro-site:latest .
+
+    - name: Push to Local Kubernetes Registry
+      run: |
+        # push image to the registry running inside the cluster
+        docker push localhost:32000/astro-site:latest
+
+    - name: Apply Kubernetes Configuration
+      run: |
+        # apply the configuration
+        microk8s kubectl apply -f k8s/deployment.yaml
+
+    - name: Force Update
+      run: |
+        # force a restart so the pods pull the new image we just pushed
+        microk8s kubectl rollout restart deployment/astro-app
