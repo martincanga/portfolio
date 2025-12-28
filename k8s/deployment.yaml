@@ -1,11 +1,10 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: astro-app
   labels:
     app: astro-website
 spec:
-  replicas: 3 # 3 copies for the 3 nodes
   selector:
     matchLabels:
       app: astro-website
@@ -16,8 +15,7 @@ spec:
     spec:
       containers:
       - name: astro-website
-        # localhost:32000 is the internal MicroK8s registry we enabled earlier
-        image: localhost:32000/astro-site:latest 
+        image: localhost:32000/astro-site:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 80
